@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FarMarket — سوق المزرعة</title>
+<script src="https://sdk.minepi.com/pi-sdk.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Tahoma,Arial,sans-serif;background:#faf6f0;direction:rtl;min-height:100vh}
+:root{--g1:#0d3b1e;--g2:#1a6b35;--g3:#2d9e5f;--g4:#4eca80;--gold:#f0b429;--cream:#faf6f0}
+
+/* Header */
+header{position:sticky;top:0;z-index:100;background:linear-gradient(135deg,#0d3b1e,#1a6b35);padding:14px 20px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 4px 20px rgba(0,0,0,0.25)}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-icon{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#4eca80,#f0b429);display:flex;align-items:center;justify-content:center;font-size:22px}
+.logo-text{color:#fff;font-weight:900;font-size:18px}.logo-text span{color:#4eca80}
+.logo-sub{color:#a8d5b8;font-size:11px}
+.header-actions{display:flex;gap:10px;align-items:center}
+.cart-btn{position:relative;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:12px;padding:8px 14px;color:#fff;cursor:pointer;font-size:16px}
+.cart-badge{position:absolute;top:-6px;left:-6px;background:#f0b429;color:#0d3b1e;border-radius:50%;width:20px;height:20px;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.login-btn{background:linear-gradient(135deg,#f0b429,#f59e0b);border:none;border-radius:12px;padding:8px 16px;color:#0d3b1e;font-weight:700;font-size:13px;cursor:pointer}
+.user-tag{background:rgba(255,255,255,0.15);border-radius:12px;padding:6px 14px;color:#fff;font-size:13px;font-weight:600}
+
+/* Hero */
+.hero{background:linear-gradient(160deg,#0d3b1e,#1a6b35,#2d9e5f);padding:48px 24px 56px;text-align:center;position:relative;overflow:hidden}
+.pi-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(240,180,41,0.15);border:1px solid rgba(240,180,41,0.3);border-radius:100px;padding:6px 16px;margin-bottom:20px;color:#fde68a;font-size:13px;font-weight:600}
+.hero h1{color:#fff;font-size:32px;font-weight:900;margin-bottom:8px}
+.hero h1 span{color:#4eca80}
+.hero p{color:#c8e6d4;font-size:15px;line-height:1.8;margin-bottom:28px}
+.hero-btn{background:linear-gradient(135deg,#4eca80,#2d9e5f);border:none;border-radius:50px;padding:16px 40px;color:#fff;font-size:17px;font-weight:700;cursor:pointer;box-shadow:0 8px 24px rgba(45,158,95,0.5)}
+.hero-stats{display:flex;justify-content:center;gap:32px;margin-top:32px}
+.stat-num{color:#4eca80;font-size:22px;font-weight:900}
+.stat-lbl{color:#a8d5b8;font-size:12px}
+
+/* Categories */
+.cats{overflow-x:auto;padding:20px 16px 8px;display:flex;gap:10px;scrollbar-width:none}
+.cat-btn{flex-shrink:0;display:flex;align-items:center;gap:6px;padding:10px 18px;border-radius:50px;border:2px solid #e0e0e0;background:#fff;color:#555;font-size:14px;font-weight:600;cursor:pointer;transition:all 0.25s;font-family:Tahoma,Arial,sans-serif}
+.cat-btn.active{border-color:#2d9e5f;background:linear-gradient(135deg,#2d9e5f,#1a6b35);color:#fff;box-shadow:0 4px 14px rgba(45,158,95,0.35)}
+
+/* Products */
+.section-title{padding:24px 20px 4px}
+.section-title h2{font-size:20px;font-weight:800;color:#0d3b1e}
+.section-title p{color:#888;font-size:13px;margin-top:4px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:16px 20px 40px}
+.card{background:#fff;border-radius:18px;overflow:hidden;box-shadow:0 4px 16px rgba(0,0,0,0.08);border:1px solid #f0f0f0;transition:all 0.3s}
+.card:active{transform:scale(0.97)}
+.card-img{background:linear-gradient(135deg,#e8f7ee,#d4f0e0);height:110px;display:flex;align-items:center;justify-content:center;font-size:52px;position:relative}
+.badge{position:absolute;top:10px;left:10px;color:#fff;font-size:10px;font-weight:700;padding:3px 10px;border-radius:100px}
+.badge-gold{background:#f0b429}
+.badge-green{background:#2d9e5f}
+.badge-blue{background:#3b82f6}
+.badge-purple{background:#8b5cf6}
+.card-body{padding:14px 16px 16px}
+.card-name{font-size:15px;font-weight:700;color:#1a1a1a;margin-bottom:4px;line-height:1.4}
+.card-desc{font-size:12px;color:#777;line-height:1.6;margin-bottom:14px;min-height:36px}
+.card-footer{display:flex;align-items:center;justify-content:space-between}
+.price{font-size:18px;font-weight:900;color:#1a6b35;line-height:1}
+.price span{color:#f0b429}
+.price-unit{font-size:11px;color:#aaa}
+.add-btn{background:linear-gradient(135deg,#2d9e5f,#1a6b35);border:none;border-radius:12px;padding:10px 16px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:Tahoma,Arial,sans-serif;box-shadow:0 4px 12px rgba(45,158,95,0.4)}
+
+/* Cart Overlay */
+.overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.5);display:flex;align-items:flex-end}
+.overlay.hidden{display:none}
+.cart-sheet{background:#fff;width:100%;max-height:85vh;border-radius:24px 24px 0 0;overflow:hidden;display:flex;flex-direction:column}
+.cart-header{padding:20px;border-bottom:1px solid #eee;display:flex;align-items:center;justify-content:space-between}
+.cart-header h2{font-size:18px;font-weight:700}
+.close-btn{background:none;border:none;font-size:22px;cursor:pointer;color:#888}
+.cart-items{flex:1;overflow-y:auto;padding:16px 20px}
+.cart-empty{text-align:center;padding:40px 0;color:#aaa}
+.cart-empty div{font-size:48px;margin-bottom:12px}
+.cart-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid #f5f5f5}
+.item-emoji{font-size:32px}
+.item-info{flex:1}
+.item-name{font-size:14px;font-weight:600}
+.item-price{font-size:13px;color:#f0b429;font-weight:700}
+.qty-controls{display:flex;align-items:center;gap:8px}
+.qty-btn{width:30px;height:30px;border-radius:8px;border:1.5px solid #e0e0e0;background:#f9f9f9;cursor:pointer;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.qty-num{font-weight:700;min-width:20px;text-align:center}
+.del-btn{color:#e53e3e;border-color:#fed7d7}
+.cart-footer{padding:16px 20px 24px;border-top:1px solid #eee;background:#fafafa}
+.cart-total{display:flex;justify-content:space-between;margin-bottom:16px;font-size:18px;font-weight:800}
+.cart-total span:last-child{color:#f0b429}
+.pay-btn{width:100%;background:linear-gradient(135deg,#2d9e5f,#1a6b35);border:none;border-radius:14px;padding:15px 24px;color:#fff;font-size:16px;font-weight:700;cursor:pointer;font-family:Tahoma,Arial,sans-serif;box-shadow:0 6px 20px rgba(45,158,95,0.4)}
+.pay-btn:disabled{opacity:0.7;cursor:not-allowed}
+.error-box{background:#fff5f5;border:1px solid #fed7d7;border-radius:10px;padding:10px 14px;color:#e53e3e;font-size:13px;margin-bottom:12px}
+.success-box{text-align:center;padding:40px 24px}
+.success-box div{font-size:64px;margin-bottom:16px}
+.success-box h2{color:#1a6b35;margin-bottom:8px}
+.success-box p{color:#555;margin-bottom:24px}
+
+/* Footer */
+footer{background:linear-gradient(135deg,#0d3b1e,#1a6b35);color:#a8d5b8;text-align:center;padding:24px 20px;font-size:13px}
+footer .f-icon{font-size:22px;margin-bottom:8px}
+footer .f-name{font-weight:700;color:#fff;margin-bottom:4px}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.fade-up{animation:fadeUp 0.4s ease forwards}
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header>
+  <div class="logo">
+    <div class="logo-icon">🌾</div>
+    <div>
+      <div class="logo-text">Farm<span>Market</span></div>
+      <div class="logo-sub">سوق المزرعة</div>
+    </div>
+  </div>
+  <div class="header-actions">
+    <button class="cart-btn" onclick="openCart()">
+      🛒
+      <span class="cart-badge" id="cartBadge" style="display:none">0</span>
+    </button>
+    <div id="userArea">
+      <button class="login-btn" onclick="loginPi()">دخول بـ π</button>
+    </div>
+  </div>
+</header>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="pi-badge"><span>π</span> السوق الزراعي الأول على شبكة Pi</div>
+  <h1>Farm<span>Market</span><br><span style="font-size:22px;color:#a8d5b8">سوق المزرعة</span></h1>
+  <p>أسمدة • مبيدات • بذور • مستلزمات زراعية<br>اشترِ باحترافية بعملة <strong style="color:#fde68a">π Pi</strong></p>
+  <button class="hero-btn" onclick="scrollToProducts()">🛒 اكتشف السوق</button>
+  <div class="hero-stats">
+    <div><div class="stat-num">12+</div><div class="stat-lbl">منتج</div></div>
+    <div><div class="stat-num">4</div><div class="stat-lbl">فئات</div></div>
+    <div><div class="stat-num">π</div><div class="stat-lbl">العملة</div></div>
+  </div>
+</section>
+
+<!-- Categories -->
+<div class="cats" id="categoriesBar">
+  <button class="cat-btn active" onclick="filterCat('all',this)">🌿 الكل</button>
+  <button class="cat-btn" onclick="filterCat('pesticides',this)">🧪 مبيدات</button>
+  <button class="cat-btn" onclick="filterCat('fertilizers',this)">🌱 أسمدة</button>
+  <button class="cat-btn" onclick="filterCat('seeds',this)">🌾 بذور</button>
+  <button class="cat-btn" onclick="filterCat('supplies',this)">🛠️ مستلزمات</button>
+</div>
+
+<!-- Products -->
+<section id="productsSection">
+  <div class="section-title">
+    <h2>🌿 المنتجات</h2>
+    <p id="productCount">12 منتج متوفر</p>
+  </div>
+  <div class="grid" id="productsGrid"></div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="f-icon">🌾</div>
+  <div class="f-name">FarMarket</div>
+  <div>مدعوم بعملة π Pi Network</div>
+</footer>
+
+<!-- Cart Overlay -->
+<div class="overlay hidden" id="cartOverlay" onclick="closeCartOnBg(event)">
+  <div class="cart-sheet">
+    <div class="cart-header">
+      <h2>🛒 سلة المشتريات</h2>
+      <button class="close-btn" onclick="closeCart()">✕</button>
+    </div>
+    <div class="cart-items" id="cartItems"></div>
+    <div class="cart-footer" id="cartFooter" style="display:none">
+      <div class="cart-total"><span>الإجمالي</span><span id="cartTotal">0 π</span></div>
+      <div class="error-box" id="cartError" style="display:none"></div>
+      <button class="pay-btn" id="payBtn" onclick="checkout()">ادفع بعملة π Pi</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== DATA =====
+const products = [
+  {id:1,cat:'pesticides',name:'مبيد حشري عام',desc:'فعّال ضد طيف واسع من الحشرات الضارة للمحاصيل',price:2.5,unit:'لتر',emoji:'🧪',badge:'الأكثر مبيعاً',bc:'badge-gold'},
+  {id:2,cat:'pesticides',name:'مبيد للحشرات الماصة',desc:'يقضي على المن والحشرات الماصة بفاعلية عالية',price:3.0,unit:'لتر',emoji:'🔬',badge:null},
+  {id:3,cat:'pesticides',name:'مبيد فطري',desc:'يحمي النباتات من الأمراض الفطرية والعفن',price:4.0,unit:'كغ',emoji:'🍄',badge:'جديد',bc:'badge-blue'},
+  {id:4,cat:'fertilizers',name:'سماد NPK 20-20-20',desc:'سماد متوازن لجميع مراحل نمو النبات',price:5.0,unit:'كغ',emoji:'💊',badge:'الأكثر مبيعاً',bc:'badge-gold'},
+  {id:5,cat:'fertilizers',name:'سماد عضوي',desc:'سماد طبيعي آمن يحسن خصوبة التربة',price:3.5,unit:'كغ',emoji:'🌿',badge:'عضوي',bc:'badge-green'},
+  {id:6,cat:'fertilizers',name:'سماد بوتاسيوم',desc:'يعزز جودة الثمار ويقوي مناعة النبات',price:4.0,unit:'كغ',emoji:'⚗️',badge:null},
+  {id:7,cat:'seeds',name:'بذور طماطم هجين',desc:'إنتاجية عالية ومقاومة للأمراض الشائعة',price:1.5,unit:'علبة',emoji:'🍅',badge:'هجين',bc:'badge-purple'},
+  {id:8,cat:'seeds',name:'بذور خيار',desc:'بذور عالية الجودة مناسبة للزراعة المحمية',price:1.5,unit:'علبة',emoji:'🥒',badge:null},
+  {id:9,cat:'seeds',name:'بذور فلفل حلو',desc:'إنتاج وفير بألوان متعددة وطعم مميز',price:2.0,unit:'علبة',emoji:'🫑',badge:null},
+  {id:10,cat:'supplies',name:'خرطوم ري 50م',desc:'خرطوم متين مقاوم للأشعة فوق البنفسجية',price:6.0,unit:'لفة',emoji:'💧',badge:null},
+  {id:11,cat:'supplies',name:'مضخة رش 16 لتر',desc:'مضخة ظهرية مريحة لرش المبيدات والأسمدة',price:8.0,unit:'قطعة',emoji:'🪣',badge:'مميز',bc:'badge-gold'},
+  {id:12,cat:'supplies',name:'قفازات زراعية',desc:'قفازات متينة مقاومة للماء والمواد الكيميائية',price:1.0,unit:'زوج',emoji:'🧤',badge:null},
+];
+
+// ===== STATE =====
+let cart = [];
+let user = null;
+let currentCat = 'all';
+
+// ===== PI SDK =====
+try {
+  if(window.Pi) {
+    Pi.init({version:'2.0', sandbox:true});
+  }
+} catch(e){ console.log('Pi init:', e.message); }
+
+async function loginPi() {
+  try {
+    if(!window.Pi){ alert('يرجى فتح التطبيق داخل Pi Browser'); return; }
+    const auth = await Pi.authenticate(['payments','username'], handleIncomplete);
+    user = auth.user;
+    document.getElementById('userArea').innerHTML =
+      `<div class="user-tag">π ${user.username}</div>`;
+  } catch(e){ console.error('Auth:', e); }
+}
+
+async function handleIncomplete(payment) {
+  try {
+    await fetch('https://farmmarket-server.onrender.com/payments/approve',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({paymentId:payment.identifier})
+    });
+  } catch(e){ console.error(e); }
+}
+
+// ===== RENDER PRODUCTS =====
+function renderProducts(cat) {
+  const filtered = cat === 'all' ? products : products.filter(p => p.cat === cat);
+  document.getElementById('productCount').textContent = filtered.length + ' منتج متوفر';
+  const grid = document.getElementById('productsGrid');
+  grid.innerHTML = filtered.map(p => `
+    <div class="card fade-up">
+      <div class="card-img">
+        ${p.emoji}
+        ${p.badge ? `<span class="badge ${p.bc||'badge-gold'}">${p.badge}</span>` : ''}
+      </div>
+      <div class="card-body">
+        <div class="card-name">${p.name}</div>
+        <div class="card-desc">${p.desc}</div>
+        <div class="card-footer">
+          <div>
+            <div class="price">${p.price} <span>π</span></div>
+            <div class="price-unit">/ ${p.unit}</div>
+          </div>
+          <button class="add-btn" onclick="addToCart(${p.id})">+ أضف</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function filterCat(cat, btn) {
+  currentCat = cat;
+  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderProducts(cat);
+}
+
+function scrollToProducts() {
+  document.getElementById('productsSection').scrollIntoView({behavior:'smooth'});
+}
+
+// ===== CART =====
+function addToCart(id) {
+  const p = products.find(x => x.id === id);
+  const existing = cart.find(x => x.id === id);
+  if(existing) existing.qty++;
+  else cart.push({...p, qty:1});
+  updateCartBadge();
+}
+
+function updateCartBadge() {
+  const total = cart.reduce((s,i) => s+i.qty, 0);
+  const badge = document.getElementById('cartBadge');
+  badge.textContent = total;
+  badge.style.display = total > 0 ? 'flex' : 'none';
+}
+
+function openCart() {
+  renderCart();
+  document.getElementById('cartOverlay').classList.remove('hidden');
+}
+
+function closeCart() {
+  document.getElementById('cartOverlay').classList.add('hidden');
+}
+
+function closeCartOnBg(e) {
+  if(e.target === document.getElementById('cartOverlay')) closeCart();
+}
+
+function renderCart() {
+  const items = document.getElementById('cartItems');
+  const footer = document.getElementById('cartFooter');
+  const totalEl = document.getElementById('cartTotal');
+
+  if(cart.length === 0) {
+    items.innerHTML = '<div class="cart-empty"><div>🛒</div><p>السلة فارغة</p></div>';
+    footer.style.display = 'none';
+    return;
+  }
+
+  const total = cart.reduce((s,i) => s + i.price*i.qty, 0);
+  totalEl.textContent = total.toFixed(2) + ' π';
+  footer.style.display = 'block';
+
+  items.innerHTML = cart.map(i => `
+    <div class="cart-item">
+      <div class="item-emoji">${i.emoji}</div>
+      <div class="item-info">
+        <div class="item-name">${i.name}</div>
+        <div class="item-price">${(i.price*i.qty).toFixed(2)} π</div>
+      </div>
+      <div class="qty-controls">
+        <button class="qty-btn" onclick="changeQty(${i.id},-1)">−</button>
+        <span class="qty-num">${i.qty}</span>
+        <button class="qty-btn" onclick="changeQty(${i.id},1)">+</button>
+        <button class="qty-btn del-btn" onclick="removeItem(${i.id})">🗑</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function changeQty(id, delta) {
+  const item = cart.find(i => i.id === id);
+  if(!item) return;
+  item.qty += delta;
+  if(item.qty <= 0) cart = cart.filter(i => i.id !== id);
+  updateCartBadge();
+  renderCart();
+}
+
+function removeItem(id) {
+  cart = cart.filter(i => i.id !== id);
+  updateCartBadge();
+  renderCart();
+}
+
+// ===== PAYMENT =====
+async function checkout() {
+  if(!user){ showError('يجب تسجيل الدخول بحساب Pi أولاً'); return; }
+  if(cart.length === 0) return;
+
+  const btn = document.getElementById('payBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ جاري الدفع...';
+  hideError();
+
+  const total = parseFloat(cart.reduce((s,i) => s+i.price*i.qty, 0).toFixed(4));
+
+  try {
+    await Pi.createPayment({
+      amount: total,
+      memo: `FarMarket — ${cart.length} منتج`,
+      metadata: { items: cart.map(i => ({id:i.id, name:i.name, qty:i.qty})) }
+    }, {
+      onReadyForServerApproval: async (paymentId) => {
+        try {
+          await fetch('https://farmmarket-server.onrender.com/payments/approve',{
+            method:'POST',headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({paymentId})
+          });
+        } catch(e){ console.error(e); }
+      },
+      onReadyForServerCompletion: async (paymentId, txid) => {
+        try {
+          await fetch('https://farmmarket-server.onrender.com/payments/complete',{
+            method:'POST',headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({paymentId, txid})
+          });
+          showSuccess();
+        } catch(e){ console.error(e); }
+      },
+      onCancel: () => { btn.disabled=false; btn.textContent='ادفع بعملة π Pi'; },
+      onError: (err) => {
+        btn.disabled=false; btn.textContent='ادفع بعملة π Pi';
+        showError('حدث خطأ في الدفع. حاول مرة أخرى.');
+      }
+    });
+  } catch(e) {
+    btn.disabled=false; btn.textContent='ادفع بعملة π Pi';
+    showError('تعذّر إتمام الدفع');
+  }
+}
+
+function showSuccess() {
+  document.querySelector('.cart-sheet').innerHTML = `
+    <div class="success-box">
+      <div>✅</div>
+      <h2>تم الدفع بنجاح!</h2>
+      <p>شكراً لشرائك من FarMarket 🌾</p>
+      <button class="pay-btn" onclick="closeCart();cart=[];updateCartBadge()">العودة للسوق</button>
+    </div>`;
+}
+
+function showError(msg) {
+  const el = document.getElementById('cartError');
+  if(el){ el.textContent=msg; el.style.display='block'; }
+}
+
+function hideError() {
+  const el = document.getElementById('cartError');
+  if(el) el.style.display='none';
+}
+
+// ===== INIT =====
+renderProducts('all');
+</script>
+</body>
+</html>
